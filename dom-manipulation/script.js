@@ -4,7 +4,7 @@ let quotes = [
     { text: "The future belongs to those who believe in the beauty of their dreams.", category: "Dreams" }
 ];
 
-// 2. Simulated Server State (Used to check for updates/conflicts)
+// 2. Simulated Server State
 let serverQuotes = [
     { text: "The only way to do great work is to love what you do.", category: "Work" },
     { text: "Simulated Server Quote: Keep pushing your limits.", category: "Motivation" },
@@ -20,7 +20,7 @@ const syncButton = document.getElementById('syncButton');
 const notificationArea = document.getElementById('notificationArea');
 
 
-// --- Helper Functions for Web Storage ---
+// --- Web Storage Helper Functions ---
 
 function saveQuotes() {
     localStorage.setItem('quotesData', JSON.stringify(quotes));
@@ -44,57 +44,100 @@ function saveFilterPreference(category) {
 }
 
 
-// --- Conflict Resolution and Sync ---
+// --- Server Interaction Simulation (Mock API) ---
 
 /**
- * @function syncData
- * Simulates fetching data from the server and updating the local store.
+ * @function fetchQuotesFromServer Fetching data from the server.
+ * Simulates fetching data from a server/mock API (JSONPlaceholder).
+ * @returns {Promise<Array>} Resolves with the server's quote data.
  */
-function syncData() {
-    notificationArea.textContent = 'Connecting to server...';
+function fetchQuotesFromServer() {
     
-    // Simulate latency and data fetching
-    setTimeout(() => {
-        // --- Step 2: Conflict Resolution Logic ---
-        
-        // 1. Check for local additions (quotes not present in serverQuotes)
-        const localOnlyQuotes = quotes.filter(localQuote => {
-            // Check if the quote text and category match any server quote
-            return !serverQuotes.some(serverQuote => 
-                serverQuote.text === localQuote.text && 
-                serverQuote.category === localQuote.category
-            );
-        });
-        
-        // 2. Simulate Server Precedence
-        let mergedQuotes = [...serverQuotes];
-        let conflictDetected = false;        
-        if (localOnlyQuotes.length > 0) {
-            // Append local unique quotes to the server data structure
-            mergedQuotes.push(...localOnlyQuotes);
-            conflictDetected = true;
-        }
+    return new Promise(resolve => {
+        // Simulate network delay
+        setTimeout(() => {
+            resolve(serverQuotes);
+        }, 1000); 
+    });
+}
 
-        // 3. Update local state with the merged, server-preferred data
-        quotes = mergedQuotes;
-        saveQuotes();
-        
-        populateCategories();
-        filterQuotes(true);
-        
-        // --- Step 3: Notification System ---
-        if (conflictDetected) {
-            notificationArea.textContent = `Sync Complete: ${localOnlyQuotes.length} local additions were merged. Server data took precedence.`;
-            notificationArea.style.color = '#e67e22';
-        } else if (serverQuotes.length > quotes.length) {
-             notificationArea.textContent = `Sync Complete: Found ${serverQuotes.length - quotes.length} new quotes from server.`;
-             notificationArea.style.color = '#27ae60';
-        }
-        else {
-            notificationArea.textContent = 'Sync Complete: Local data is up-to-date.';
-            notificationArea.style.color = '#3498db';
-        }
-    }, 1500); // Simulate network delay
+/**
+ * @function postQuoteToServer Posting data to the server.
+ * Simulates posting a new quote to the server/mock API.
+ */
+function postQuoteToServer(newQuote) {
+    
+    return new Promise(resolve => {
+        setTimeout(() => {
+            // Update the simulated server state
+            serverQuotes.push(newQuote);
+            resolve({ success: true });
+        }, 500);
+    });
+}
+
+/**
+ * @function syncQuotes Sync logic.
+ * Compares local data with server data and resolves conflicts.
+ * @param {Array} latestServerQuotes - The data received from the server.
+ */
+function syncQuotes(latestServerQuotes) {
+    // 1. Identify local additions (quotes not present in server)
+    const localOnlyQuotes = quotes.filter(localQuote => {
+        // Simple comparison: check if both text and category exist on server
+        return !latestServerQuotes.some(serverQuote => 
+            serverQuote.text === localQuote.text && 
+            serverQuote.category === localQuote.category
+        );
+    });
+    
+
+    // 2. Conflict Resolution: Server Precedence (Server's latest data is primary)
+    let mergedQuotes = [...latestServerQuotes];
+    let conflictDetected = false;
+    
+    if (localOnlyQuotes.length > 0) {
+        // Append unique local quotes to the server data
+        mergedQuotes.push(...localOnlyQuotes);
+        conflictDetected = true;
+    }
+
+    // 3. Update local state
+    quotes = mergedQuotes;
+    saveQuotes();
+    
+    // 4. Update UI elements
+    populateCategories();
+    filterQuotes(true);
+    
+    // 5. Notification System
+    if (conflictDetected) {
+        notificationArea.textContent = `Sync Complete: ${localOnlyQuotes.length} local addition(s) merged. Server data took precedence.`;
+        notificationArea.style.color = '#e67e22';
+    } else if (latestServerQuotes.length > quotes.length) {
+         notificationArea.textContent = `Sync Complete: Found ${latestServerQuotes.length - quotes.length} new quote(s) from server.`;
+         notificationArea.style.color = '#27ae60';
+    } else {
+        notificationArea.textContent = 'Sync Complete: Local data is up-to-date.';
+        notificationArea.style.color = '#3498db';
+    }
+}
+
+/**
+ * Main sync function tied to the button click.
+ */
+async function triggerDataSync() {
+    notificationArea.textContent = 'Connecting to server...';
+    notificationArea.style.color = '#3498db';
+
+    try {
+        const latestServerQuotes = await fetchQuotesFromServer();
+        syncQuotes(latestServerQuotes);
+    } catch (error) {
+        notificationArea.textContent = 'Sync failed. Check network connection.';
+        notificationArea.style.color = '#c0392b';
+        console.error('Sync error:', error);
+    }
 }
 
 
@@ -202,7 +245,10 @@ function addQuote() {
     // 1. Save updated array to Local Storage
     saveQuotes();
     
-    // 2. Update the category filter dropdown immediately
+    // 2. Post the new quote to the server
+    postQuoteToServer(newQuote);
+    
+    // 3. Update the category filter dropdown
     populateCategories();
 
     // Clear the input fields
@@ -215,8 +261,7 @@ function addQuote() {
         <span id="quoteCategory" style="color: #28a745;">— Category: ${newQuote.category} (Successfully Added & Saved!)</span>
     `;
     
-    filterQuotes(true);    
-    serverQuotes.push(newQuote);
+    filterQuotes(true); 
 }
 
 
@@ -307,7 +352,7 @@ populateCategories();
 // 4. Attach Event Listeners
 newQuoteButton.addEventListener('click', showRandomQuote);
 exportButton.addEventListener('click', exportQuotes);
-syncButton.addEventListener('click', syncData);
+syncButton.addEventListener('click', triggerDataSync);
 
 // 5. Initial Display: Filter quotes or show last viewed
 if (quotes.length > 0) {
@@ -320,6 +365,9 @@ if (quotes.length > 0) {
         `;
         saveLastViewedQuoteIndex(parseInt(lastIndex));
     } else {
-        filterQuotes(false); // Display filtered view on load
+        filterQuotes(false);
     }
 }
+
+// 6. Set up periodic data fetching
+setInterval(triggerDataSync, 60000);
