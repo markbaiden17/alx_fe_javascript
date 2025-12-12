@@ -11,7 +11,6 @@
             padding: 20px;
             background-color: #f4f4f9;
         }
-        
         #quoteDisplay {
             margin: 30px auto;
             padding: 20px;
@@ -27,7 +26,6 @@
             background-color: white;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        
         #quoteText {
             font-size: 1.2em; 
             font-style: italic;
@@ -41,7 +39,6 @@
             justify-content: center;
             align-items: center;
         }
-        
         #quoteCategory {
             display: block;
             margin-top: 10px;
@@ -49,7 +46,6 @@
             color: #555;
             font-size: 0.9em;
         }
-        
         button {
             padding: 10px 20px;
             margin: 5px;
@@ -59,36 +55,30 @@
             font-size: 1em;
             transition: background-color 0.3s;
         }
-
         #newQuote {
             background-color: #28a745;
             color: white;
         }
-
         #newQuote:hover {
             background-color: #218838;
         }
-
-        .add-quote-section {
+        #addQuoteSection { 
             margin-top: 40px;
             padding: 20px;
             border-top: 1px solid #ccc;
         }
-
-        .add-quote-section input {
+        #addQuoteSection input {
             padding: 10px;
             margin: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
             width: 200px;
         }
-
-        .add-quote-section button {
+        #addQuoteSection button {
             background-color: #28a745;
             color: white;
         }
-        
-        .add-quote-section button:hover {
+        #addQuoteSection button:hover {
             background-color: #218838;
         }
     </style>
@@ -101,12 +91,8 @@
 
     <button id="newQuote">Show New Quote</button>
 
-    <div class="add-quote-section">
-        <h2>Add Your Own Quote</h2>
-        <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
-        <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
-        <button onclick="addQuote()">Add Quote</button>
-    </div>
+    <div id="addQuoteSection">
+        </div>
 
     <script src="script.js"></script>
 </body>
