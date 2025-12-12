@@ -1,4 +1,4 @@
-// Required Check: Mock API URL for server simulation
+Mock API URL for server simulation
 const MOCK_API_URL = "https://jsonplaceholder.typicode.com/posts";
 
 // 1. Local State (Persisted in Local Storage)
@@ -71,9 +71,9 @@ function fetchQuotesFromServer() {
 function postQuoteToServer(newQuote) {
     /*
     fetch(MOCK_API_URL, {
-        method: "POST", // <--- Required parameter
-        headers: {      // <--- Required parameter
-            "Content-Type": "application/json" // <--- Required parameter
+        method: "POST", //
+        headers: {      //
+            "Content-Type": "application/json" //
         },
         body: JSON.stringify(newQuote)
     });
@@ -98,12 +98,6 @@ function syncQuotes(latestServerQuotes) {
     const initialLocalQuoteCount = quotes.length;
     
     const localOnlyQuotes = quotes.filter(localQuote => {
-        /* return !latestServerQuotes.some(serverQuote => 
-            serverQuote.id === localQuote.id && 
-            serverQuote.timestamp > localQuote.timestamp
-        );
-        */
-
         // Simple comparison: check if both text and category exist on server
         return !latestServerQuotes.some(serverQuote => 
             serverQuote.text === localQuote.text && 
@@ -130,14 +124,19 @@ function syncQuotes(latestServerQuotes) {
     filterQuotes(true);
     
     // 5. Notification System
+    const newQuotesFromServerCount = mergedQuotes.length - initialLocalQuoteCount + localOnlyQuotes.length;
+
     if (conflictDetected) {
-        notificationArea.textContent = `Sync Complete: ${localOnlyQuotes.length} local addition(s) merged. Server data took precedence.`;
+        // Case 1: Conflicts resolved
+        notificationArea.textContent = `Quotes synced with server! ${localOnlyQuotes.length} local addition(s) merged. Server data took precedence.`;
         notificationArea.style.color = '#e67e22'; 
-    } else if (latestServerQuotes.length > quotes.length) {
-         notificationArea.textContent = `Sync Complete: Found ${latestServerQuotes.length - quotes.length} new quote(s) from server.`;
+    } else if (newQuotesFromServerCount > 0) {
+         // Case 2: New data fetched from server
+         notificationArea.textContent = `Quotes synced with server! Found ${newQuotesFromServerCount} new quote(s).`;
          notificationArea.style.color = '#27ae60'; 
     } else {
-        notificationArea.textContent = 'Sync Complete: Local data is up-to-date.';
+        // Case 3: Data was already identical
+        notificationArea.textContent = 'Quotes synced with server! Local data is up-to-date.';
         notificationArea.style.color = '#3498db'; 
     }
 }
@@ -388,5 +387,5 @@ if (quotes.length > 0) {
     }
 }
 
-// 6. Set up periodic data fetching (Required Check: Periodically checking for new quotes)
+// 6. Set up periodic data fetching
 setInterval(triggerDataSync, 60000);
