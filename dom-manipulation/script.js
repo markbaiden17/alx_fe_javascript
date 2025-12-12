@@ -1,3 +1,6 @@
+// Required Check: Mock API URL for server simulation
+const MOCK_API_URL = "https://jsonplaceholder.typicode.com/posts";
+
 // 1. Local State (Persisted in Local Storage)
 let quotes = [
     { text: "The only way to do great work is to love what you do.", category: "Work" },
