@@ -95,7 +95,15 @@ function postQuoteToServer(newQuote) {
  */
 function syncQuotes(latestServerQuotes) {
     // 1. Identify local additions (quotes not present in server)
+    const initialLocalQuoteCount = quotes.length;
+    
     const localOnlyQuotes = quotes.filter(localQuote => {
+        /* return !latestServerQuotes.some(serverQuote => 
+            serverQuote.id === localQuote.id && 
+            serverQuote.timestamp > localQuote.timestamp
+        );
+        */
+
         // Simple comparison: check if both text and category exist on server
         return !latestServerQuotes.some(serverQuote => 
             serverQuote.text === localQuote.text && 
