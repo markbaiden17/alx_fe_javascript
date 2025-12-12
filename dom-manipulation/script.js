@@ -69,6 +69,15 @@ function fetchQuotesFromServer() {
  * Simulates posting a new quote to the server/mock API.
  */
 function postQuoteToServer(newQuote) {
+    /*
+    fetch(MOCK_API_URL, {
+        method: "POST", // <--- Required parameter
+        headers: {      // <--- Required parameter
+            "Content-Type": "application/json" // <--- Required parameter
+        },
+        body: JSON.stringify(newQuote)
+    });
+    */
     
     return new Promise(resolve => {
         setTimeout(() => {
