@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Quote Generator</title>
+    <title>Dynamic Quote Generator (v2)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -81,18 +81,45 @@
         #addQuoteSection button:hover {
             background-color: #218838;
         }
+        .data-management-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .data-management-section button {
+            background-color: #f39c12;
+            color: white;
+        }
+        .data-management-section button:hover {
+            background-color: #e67e22;
+        }
     </style>
 </head>
 <body>
 
     <h1>Dynamic Quote Generator</h1>
 
-    <div id="quoteDisplay"></div>
+    <div id="quoteDisplay">
+        <p>Loading quotes...</p>
+    </div>
 
     <button id="newQuote">Show New Quote</button>
 
-    <div id="addQuoteSection">
-        </div>
+    <div id="addQuoteSection"></div>
+
+    <div class="data-management-section">
+        <h2>Data Management</h2>
+        
+        <button id="exportQuotes">Export Quotes to JSON</button>
+        
+        <label>Import Quotes:
+             <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
+        </label>
+    </div>
 
     <script src="script.js"></script>
 </body>
