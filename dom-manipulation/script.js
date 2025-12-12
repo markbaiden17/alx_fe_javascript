@@ -4,25 +4,28 @@ let quotes = [
     { text: "The future belongs to those who believe in the beauty of their dreams.", category: "Dreams" }
 ];
 
+// 2. Simulated Server State (Used to check for updates/conflicts)
+let serverQuotes = [
+    { text: "The only way to do great work is to love what you do.", category: "Work" },
+    { text: "Simulated Server Quote: Keep pushing your limits.", category: "Motivation" },
+    { text: "Always code as if the guy who ends up maintaining your code will be a violent psychopath.", category: "Coding" } 
+];
+
 const quoteDisplay = document.getElementById('quoteDisplay');
 const newQuoteButton = document.getElementById('newQuote');
 const addQuoteContainer = document.getElementById('addQuoteSection');
 const exportButton = document.getElementById('exportQuotes');
 const categoryFilter = document.getElementById('categoryFilter');
+const syncButton = document.getElementById('syncButton');
+const notificationArea = document.getElementById('notificationArea');
 
 
 // --- Helper Functions for Web Storage ---
 
-/**
- * Saves the current quotes array to Local Storage.
- */
 function saveQuotes() {
     localStorage.setItem('quotesData', JSON.stringify(quotes));
 }
 
-/**
- * Loads quotes from Local Storage on application initialization.
- */
 function loadQuotes() {
     const storedQuotes = localStorage.getItem('quotesData');
     if (storedQuotes) {
@@ -32,35 +35,75 @@ function loadQuotes() {
     }
 }
 
-/**
- * Saves the last viewed quote index to Session Storage.
- */
 function saveLastViewedQuoteIndex(index) {
     sessionStorage.setItem('lastQuoteIndex', index);
 }
 
-/**
- * Saves the last selected filter category to Local Storage.
- */
 function saveFilterPreference(category) {
     localStorage.setItem('lastCategoryFilter', category);
 }
 
 
-// --- Category Management and Filtering ---
+// --- Conflict Resolution and Sync ---
 
 /**
- * @function populateCategories
- * Extracts unique categories and dynamically populates the filter dropdown.
+ * @function syncData
+ * Simulates fetching data from the server and updating the local store.
  */
-function populateCategories() {
-    // 1. Extract unique categories using a Set
-    const uniqueCategories = new Set(quotes.map(quote => quote.category));
+function syncData() {
+    notificationArea.textContent = 'Connecting to server...';
+    
+    // Simulate latency and data fetching
+    setTimeout(() => {
+        // --- Step 2: Conflict Resolution Logic ---
+        
+        // 1. Check for local additions (quotes not present in serverQuotes)
+        const localOnlyQuotes = quotes.filter(localQuote => {
+            // Check if the quote text and category match any server quote
+            return !serverQuotes.some(serverQuote => 
+                serverQuote.text === localQuote.text && 
+                serverQuote.category === localQuote.category
+            );
+        });
+        
+        // 2. Simulate Server Precedence
+        let mergedQuotes = [...serverQuotes];
+        let conflictDetected = false;        
+        if (localOnlyQuotes.length > 0) {
+            // Append local unique quotes to the server data structure
+            mergedQuotes.push(...localOnlyQuotes);
+            conflictDetected = true;
+        }
 
-    // 2. Clear existing options (except "All Categories")
+        // 3. Update local state with the merged, server-preferred data
+        quotes = mergedQuotes;
+        saveQuotes();
+        
+        populateCategories();
+        filterQuotes(true);
+        
+        // --- Step 3: Notification System ---
+        if (conflictDetected) {
+            notificationArea.textContent = `Sync Complete: ${localOnlyQuotes.length} local additions were merged. Server data took precedence.`;
+            notificationArea.style.color = '#e67e22';
+        } else if (serverQuotes.length > quotes.length) {
+             notificationArea.textContent = `Sync Complete: Found ${serverQuotes.length - quotes.length} new quotes from server.`;
+             notificationArea.style.color = '#27ae60';
+        }
+        else {
+            notificationArea.textContent = 'Sync Complete: Local data is up-to-date.';
+            notificationArea.style.color = '#3498db';
+        }
+    }, 1500); // Simulate network delay
+}
+
+
+// --- Category Management and Filtering ---
+
+function populateCategories() {
+    const uniqueCategories = new Set(quotes.map(quote => quote.category));
     categoryFilter.innerHTML = '<option value="all">All Categories</option>';
     
-    // 3. Dynamically create and append new options
     uniqueCategories.forEach(category => {
         if (category && category.trim() !== '') {
             const option = document.createElement('option');
@@ -70,34 +113,24 @@ function populateCategories() {
         }
     });
 
-    // 4. Restore the last selected filter preference (Step 2)
     const lastFilter = localStorage.getItem('lastCategoryFilter');
     if (lastFilter) {
         categoryFilter.value = lastFilter;
     }
     
-    // Ensure the initial display reflects the restored filter
-    filterQuotes(false); // Do not save preference on load
+    filterQuotes(false);
 }
 
-/**
- * @function filterQuotes
- * Filters the displayed quotes based on the selected category.
- * @param {boolean} shouldSave - Whether to save the preference to localStorage.
- */
 function filterQuotes(shouldSave = true) {
     const selectedCategory = categoryFilter.value;
 
-    // 1. Filter the quotes array
     const filteredQuotes = selectedCategory === 'all'
         ? quotes
         : quotes.filter(quote => quote.category === selectedCategory);
 
-    // 2. Update the display with the filtered results
     if (filteredQuotes.length === 0) {
         quoteDisplay.innerHTML = `<p>No quotes found for category: <strong>${selectedCategory}</strong></p>`;
     } else {
-        // Find a random quote from the filtered list to display
         const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
         const quote = filteredQuotes[randomIndex];
         
@@ -115,7 +148,6 @@ function filterQuotes(shouldSave = true) {
         quoteDisplay.appendChild(quoteCategoryElement);
     }
 
-    // 3. Save the filter preference to Local Storage
     if (shouldSave) {
         saveFilterPreference(selectedCategory);
     }
@@ -124,10 +156,6 @@ function filterQuotes(shouldSave = true) {
 
 // --- Core Application Functions ---
 
-/**
- * @function showRandomQuote
- * Displays a random quote from the *entire* list (not filtered) and saves the index.
- */
 function showRandomQuote() {
     if (quotes.length === 0) {
         quoteDisplay.innerHTML = '<p>No quotes available. Add a new one below!</p>';
@@ -153,10 +181,6 @@ function showRandomQuote() {
     saveLastViewedQuoteIndex(randomIndex);
 }
 
-/**
- * @function addQuote
- * Adds a new quote, updates storage, and updates the category dropdown.
- */
 function addQuote() {
     const newQuoteInput = document.getElementById('newQuoteText');
     const newCategoryInput = document.getElementById('newQuoteCategory');
@@ -191,15 +215,11 @@ function addQuote() {
         <span id="quoteCategory" style="color: #28a745;">— Category: ${newQuote.category} (Successfully Added & Saved!)</span>
     `;
     
-    // Apply the current filter to see if the new quote should be shown
-    filterQuotes(true); 
+    filterQuotes(true);    
+    serverQuotes.push(newQuote);
 }
 
 
-/**
- * @function createAddQuoteForm
- * Dynamically creates the form elements.
- */
 function createAddQuoteForm() {
     const title = document.createElement('h2');
     title.textContent = 'Add Your Own Quote';
@@ -226,10 +246,6 @@ function createAddQuoteForm() {
 
 // --- JSON Import and Export Functions ---
 
-/**
- * @function exportQuotes
- * Exports the current quotes array to a downloadable JSON file.
- */
 function exportQuotes() {
     const dataStr = JSON.stringify(quotes, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
@@ -249,10 +265,6 @@ function exportQuotes() {
 }
 
 
-/**
- * @function importFromJsonFile
- * Reads an uploaded JSON file, parses it, updates quotes, and updates categories.
- */
 function importFromJsonFile(event) {
     const fileReader = new FileReader();
     
@@ -267,7 +279,7 @@ function importFromJsonFile(event) {
           quotes.push(...importedQuotes);
           
           saveQuotes();
-          populateCategories(); // Update categories after import
+          populateCategories();
 
           alert(`Successfully imported ${importedQuotes.length} new quotes!`);
           filterQuotes(true);
@@ -295,3 +307,19 @@ populateCategories();
 // 4. Attach Event Listeners
 newQuoteButton.addEventListener('click', showRandomQuote);
 exportButton.addEventListener('click', exportQuotes);
+syncButton.addEventListener('click', syncData);
+
+// 5. Initial Display: Filter quotes or show last viewed
+if (quotes.length > 0) {
+    const lastIndex = sessionStorage.getItem('lastQuoteIndex');
+    if (lastIndex && quotes[parseInt(lastIndex)]) {
+        const lastQuote = quotes[parseInt(lastIndex)];
+        quoteDisplay.innerHTML = `
+            <p id="quoteText" style="font-size: 1.2em;">"${lastQuote.text}"</p>
+            <span id="quoteCategory">— Category: ${lastQuote.category} (Last viewed quote)</span>
+        `;
+        saveLastViewedQuoteIndex(parseInt(lastIndex));
+    } else {
+        filterQuotes(false); // Display filtered view on load
+    }
+}

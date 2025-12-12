@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Quote Generator (v2)</title>
+    <title>Dynamic Quote Generator</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -97,6 +97,13 @@
         .data-management-section button:hover {
             background-color: #e67e22;
         }
+        #syncButton {
+            background-color: #3498db; /* Blue color for Sync */
+            color: white;
+        }
+        #syncButton:hover {
+            background-color: #2980b9;
+        }
     </style>
 </head>
 <body>
@@ -114,6 +121,11 @@
         <select id="categoryFilter" onchange="filterQuotes()">
             <option value="all">All Categories</option>
             </select>
+    </div>
+
+    <div style="margin-top: 15px; margin-bottom: 20px;">
+        <button id="syncButton">Sync with Server</button>
+        <p id="notificationArea" style="color: #c0392b; font-weight: bold; margin-top: 10px; min-height: 20px;"></p>
     </div>
 
     <div id="addQuoteSection"></div>
