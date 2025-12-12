@@ -1,3 +1,4 @@
+// 1. Local State (Persisted in Local Storage)
 let quotes = [
     { text: "The only way to do great work is to love what you do.", category: "Work" },
     { text: "Strive not to be a success, but rather to be of value.", category: "Value" },
@@ -49,12 +50,11 @@ function saveFilterPreference(category) {
 /**
  * @function fetchQuotesFromServer Fetching data from the server.
  * Simulates fetching data from a server/mock API (JSONPlaceholder).
- * @returns {Promise<Array>} Resolves with the server's quote data.
  */
 function fetchQuotesFromServer() {
     
     return new Promise(resolve => {
-        // Simulate network delay
+        // Simulate network delay and return the mock server data
         setTimeout(() => {
             resolve(serverQuotes);
         }, 1000); 
@@ -77,8 +77,8 @@ function postQuoteToServer(newQuote) {
 }
 
 /**
- * @function syncQuotes Sync logic.
- * Compares local data with server data and resolves conflicts.
+ * @function syncQuotes Sync logic and updating local storage/conflict resolution.
+ * Compares local data with server data and resolves conflicts using server precedence.
  * @param {Array} latestServerQuotes - The data received from the server.
  */
 function syncQuotes(latestServerQuotes) {
@@ -90,9 +90,8 @@ function syncQuotes(latestServerQuotes) {
             serverQuote.category === localQuote.category
         );
     });
-    
 
-    // 2. Conflict Resolution: Server Precedence (Server's latest data is primary)
+    // 2. Conflict Resolution: Server Precedence
     let mergedQuotes = [...latestServerQuotes];
     let conflictDetected = false;
     
@@ -113,18 +112,18 @@ function syncQuotes(latestServerQuotes) {
     // 5. Notification System
     if (conflictDetected) {
         notificationArea.textContent = `Sync Complete: ${localOnlyQuotes.length} local addition(s) merged. Server data took precedence.`;
-        notificationArea.style.color = '#e67e22';
+        notificationArea.style.color = '#e67e22'; 
     } else if (latestServerQuotes.length > quotes.length) {
          notificationArea.textContent = `Sync Complete: Found ${latestServerQuotes.length - quotes.length} new quote(s) from server.`;
-         notificationArea.style.color = '#27ae60';
+         notificationArea.style.color = '#27ae60'; 
     } else {
         notificationArea.textContent = 'Sync Complete: Local data is up-to-date.';
-        notificationArea.style.color = '#3498db';
+        notificationArea.style.color = '#3498db'; 
     }
 }
 
 /**
- * Main sync function tied to the button click.
+ * Main sync function tied to the button click and periodic check.
  */
 async function triggerDataSync() {
     notificationArea.textContent = 'Connecting to server...';
@@ -369,5 +368,5 @@ if (quotes.length > 0) {
     }
 }
 
-// 6. Set up periodic data fetching
+// 6. Set up periodic data fetching (Required Check: Periodically checking for new quotes)
 setInterval(triggerDataSync, 60000);
